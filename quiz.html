@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Multiplayer Multiplication Quiz</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: linear-gradient(135deg, #ff416c, #ff4b2b);
+      color: white;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      margin-top: 60px;
+    }
+
+    h1 {
+      font-size: 40px;
+    }
+
+    #playerTurn {
+      font-size: 24px;
+      margin: 10px;
+    }
+
+    #question {
+      font-size: 30px;
+      margin: 20px 0;
+    }
+
+    .options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      width: 320px;
+      margin: 20px auto;
+    }
+
+    button {
+      padding: 15px;
+      font-size: 18px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+    }
+
+    #timer {
+      font-size: 22px;
+    }
+
+    #scores {
+      margin-top: 15px;
+      font-size: 20px;
+    }
+
+    #restart {
+      margin-top: 20px;
+      display: none;
+      background: yellow;
+      color: black;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Multiplayer Multiplication Quiz</h1>
+  <div id="playerTurn"></div>
+  <div id="question"></div>
+  <div class="options">
+    <button onclick="checkAnswer(this)"></button>
+    <button onclick="checkAnswer(this)"></button>
+    <button onclick="checkAnswer(this)"></button>
+    <button onclick="checkAnswer(this)"></button>
+  </div>
+  <div id="timer">Time: 10</div>
+  <div id="scores">
+    Player 1: 0 | Player 2: 0
+  </div>
+  <button id="restart" onclick="restartGame()">Restart Game</button>
+</div>
+
+<script>
+  let correctAnswer;
+  let player1Score = 0;
+  let player2Score = 0;
+  let currentPlayer = 1;
+  let timeLeft = 10;
+  let timer;
+  let questionCount = 0;
+  const maxQuestions = 10;
+
+  function generateQuestion() {
+    if (questionCount >= maxQuestions) {
+      endGame();
+      return;
+    }
+
+    questionCount++;
+    timeLeft = 10;
+    document.getElementById("timer").innerText = "Time: " + timeLeft;
+    document.getElementById("playerTurn").innerText = 
+      "Player " + currentPlayer + "'s Turn";
+
+    let num1 = Math.floor(Math.random() * 12) + 1;
+    let num2 = Math.floor(Math.random() * 12) + 1;
+    correctAnswer = num1 * num2;
+
+    document.getElementById("question").innerText =
+      num1 + " × " + num2 + " = ?";
+
+    let options = [correctAnswer];
+
+    while (options.length < 4) {
+      let wrongAnswer = correctAnswer + Math.floor(Math.random() * 10) - 5;
+      if (!options.includes(wrongAnswer) && wrongAnswer > 0) {
+        options.push(wrongAnswer);
+      }
+    }
+
+    options.sort(() => Math.random() - 0.5);
+
+    let buttons = document.querySelectorAll(".options button");
+    buttons.forEach((btn, index) => {
+      btn.innerText = options[index];
+      btn.style.background = "white";
+      btn.style.color = "black";
+    });
+
+    startTimer();
+  }
+
+  function startTimer() {
+    clearInterval(timer);
+    timer = setInterval(() => {
+      timeLeft--;
+      document.getElementById("timer").innerText = "Time: " + timeLeft;
+
+      if (timeLeft <= 0) {
+        clearInterval(timer);
+        switchPlayer();
+      }
+    }, 1000);
+  }
+
+  function checkAnswer(button) {
+    clearInterval(timer);
+
+    if (parseInt(button.innerText) === correctAnswer) {
+      if (currentPlayer === 1) {
+        player1Score++;
+      } else {
+        player2Score++;
+      }
+      button.style.background = "green";
+      button.style.color = "white";
+    } else {
+      button.style.background = "red";
+      button.style.color = "white";
+    }
+
+    updateScores();
+
+    setTimeout(() => {
+      switchPlayer();
+    }, 1000);
+  }
+
+  function switchPlayer() {
+    currentPlayer = currentPlayer === 1 ? 2 : 1;
+    generateQuestion();
+  }
+
+  function updateScores() {
+    document.getElementById("scores").innerText =
+      "Player 1: " + player1Score +
+      " | Player 2: " + player2Score;
+  }
+
+  function endGame() {
+    document.querySelector(".options").style.display = "none";
+    document.getElementById("timer").style.display = "none";
+
+    let winnerText;
+
+    if (player1Score > player2Score) {
+      winnerText = "🏆 Player 1 Wins!";
+    } else if (player2Score > player1Score) {
+      winnerText = "🏆 Player 2 Wins!";
+    } else {
+      winnerText = "🤝 It's a Tie!";
+    }
+
+    document.getElementById("question").innerText =
+      "Game Over! " + winnerText;
+
+    document.getElementById("restart").style.display = "inline-block";
+  }
+
+  function restartGame() {
+    player1Score = 0;
+    player2Score = 0;
+    questionCount = 0;
+    currentPlayer = 1;
+    updateScores();
+    document.querySelector(".options").style.display = "grid";
+    document.getElementById("timer").style.display = "block";
+    document.getElementById("restart").style.display = "none";
+    generateQuestion();
+  }
+
+  generateQuestion();
+</script>
+
+</body>
+</html>
